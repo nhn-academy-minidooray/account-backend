@@ -1,7 +1,13 @@
 package com.nhnacademy.minidooray.account.backend.domain;
 
-public interface LoginInfo {
-    String getId();
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.Value;
 
-    String getPassword();
+@Value
+@NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
+public class LoginInfo {
+    String id;
+
+    String password;
 }
