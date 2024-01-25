@@ -1,14 +1,14 @@
 package com.nhnacademy.minidooray.account.backend.service;
 
-import com.nhnacademy.minidooray.account.backend.domain.AccountRegisterRequest;
-import com.nhnacademy.minidooray.account.backend.domain.LoginInfo;
+import com.nhnacademy.minidooray.account.backend.domain.AccountRegisterRequestDTO;
+import com.nhnacademy.minidooray.account.backend.domain.LoginInfoDTO;
 import com.nhnacademy.minidooray.account.backend.entity.Account;
 
 public interface AccountService {
 
-    Account createAccount(AccountRegisterRequest request);
+    Account createAccount(AccountRegisterRequestDTO request);
 
-    boolean matches(LoginInfo loginInfo);
+    boolean matches(LoginInfoDTO loginInfoDTO);
 
     Account getAccount(String id);
 

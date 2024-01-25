@@ -1,7 +1,8 @@
 package com.nhnacademy.minidooray.account.backend.controller;
 
-import com.nhnacademy.minidooray.account.backend.domain.AccountRegisterRequest;
-import com.nhnacademy.minidooray.account.backend.domain.LoginInfo;
+import com.nhnacademy.minidooray.account.backend.domain.AccountIdOnlyDTO;
+import com.nhnacademy.minidooray.account.backend.domain.AccountRegisterRequestDTO;
+import com.nhnacademy.minidooray.account.backend.domain.LoginInfoDTO;
 import com.nhnacademy.minidooray.account.backend.entity.Account;
 import com.nhnacademy.minidooray.account.backend.exception.AccountNotFoundException;
 import com.nhnacademy.minidooray.account.backend.service.AccountService;
@@ -25,25 +26,25 @@ public class AccountRestController {
         this.accountService = accountService;
     }
 
-    @PostMapping
-    public ResponseEntity<Void> createAccount(@RequestBody AccountRegisterRequest request) {
+    @PostMapping("/register")
+    public ResponseEntity<Void> createAccount(@RequestBody AccountRegisterRequestDTO request) {
         accountService.createAccount(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Void> doLogin(@RequestBody LoginInfo loginInfo) {
-        return accountService.matches(loginInfo)
+    public ResponseEntity<Void> doLogin(@RequestBody LoginInfoDTO loginInfoDTO) {
+        return accountService.matches(loginInfoDTO)
                 ? ResponseEntity.status(HttpStatus.OK).build()
                 : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
 
     @GetMapping("/info")
-    public ResponseEntity<Account> getInfo(@RequestBody String id) {
+    public ResponseEntity<Account> getInfo(@RequestBody AccountIdOnlyDTO request) {
         try {
-            Account account = accountService.getAccount(id);
+            Account account = accountService.getAccount(request.getId());
 
             return ResponseEntity.ok(account);
         } catch(AccountNotFoundException exception) {
@@ -54,8 +55,8 @@ public class AccountRestController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteAccount(@RequestBody String id) {
-        accountService.updateAccountStatus(id, "휴면");
+    public ResponseEntity<Void> deleteAccount(@RequestBody AccountIdOnlyDTO request) {
+        accountService.updateAccountStatus(request.getId(), "휴면");
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }

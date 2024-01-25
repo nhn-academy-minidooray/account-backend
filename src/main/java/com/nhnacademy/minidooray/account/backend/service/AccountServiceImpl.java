@@ -1,8 +1,9 @@
 package com.nhnacademy.minidooray.account.backend.service;
 
-import com.nhnacademy.minidooray.account.backend.domain.AccountRegisterRequest;
-import com.nhnacademy.minidooray.account.backend.domain.LoginInfo;
+import com.nhnacademy.minidooray.account.backend.domain.AccountRegisterRequestDTO;
+import com.nhnacademy.minidooray.account.backend.domain.LoginInfoDTO;
 import com.nhnacademy.minidooray.account.backend.entity.Account;
+import com.nhnacademy.minidooray.account.backend.domain.Status;
 import com.nhnacademy.minidooray.account.backend.exception.AccountAlreadyExistsException;
 import com.nhnacademy.minidooray.account.backend.exception.AccountNotFoundException;
 import com.nhnacademy.minidooray.account.backend.exception.AlreadyInStatusException;
@@ -22,8 +23,8 @@ public class AccountServiceImpl implements AccountService{
 
     @Transactional
     @Override
-    public Account createAccount(AccountRegisterRequest request) {
-        if(!accountRepository.existsById(request.getId())){
+    public Account createAccount(AccountRegisterRequestDTO request) {
+        if(accountRepository.existsById(request.getId())){
             throw new AccountAlreadyExistsException();
         }
 
@@ -31,7 +32,7 @@ public class AccountServiceImpl implements AccountService{
                 request.getId(),
                 request.getPassword(),
                 request.getEmail(),
-                Account.Status.JOIN
+                Status.JOIN.getValue()
         );
 
         return accountRepository.save(account);
@@ -39,14 +40,14 @@ public class AccountServiceImpl implements AccountService{
 
     @Transactional(readOnly = true)
     @Override
-    public boolean matches(LoginInfo loginInfo) {
-        if(!accountRepository.existsById(loginInfo.getId())){
+    public boolean matches(LoginInfoDTO loginInfoDTO) {
+        if(!accountRepository.existsById(loginInfoDTO.getId())){
             throw new AccountNotFoundException();
         }
 
-        LoginInfo result = accountRepository.getLoginInfoById(loginInfo.getId());
+        LoginInfoDTO result = accountRepository.getLoginInfoById(loginInfoDTO.getId());
 
-        return Objects.equals(result.getPassword(), loginInfo.getPassword());
+        return Objects.equals(result.getPassword(), loginInfoDTO.getPassword());
     }
 
     @Transactional(readOnly = true)
@@ -65,15 +66,15 @@ public class AccountServiceImpl implements AccountService{
 
         Account account = getAccount(id);
 
-        if(Objects.equals(account.getStatus().getValue(), status)) {
+        if(Objects.equals(account.getStatus(), status)) {
             throw new AlreadyInStatusException();
         }
 
-        accountRepository.updateStatus(id, Account.Status.fromValue(status));
+        accountRepository.updateStatus(id, status);
     }
 
     private boolean isValidStatus(String status) {
-        for (Account.Status validStatus : Account.Status.values()) {
+        for (Status validStatus : Status.values()) {
             if (validStatus.getValue().equals(status)) {
                 return true;
             }

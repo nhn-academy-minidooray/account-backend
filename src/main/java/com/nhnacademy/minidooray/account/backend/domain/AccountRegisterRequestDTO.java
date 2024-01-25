@@ -6,7 +6,7 @@ import lombok.Value;
 
 @Value
 @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
-public class AccountRegisterRequest {
+public class AccountRegisterRequestDTO {
     String id;
     String password;
     String email;
