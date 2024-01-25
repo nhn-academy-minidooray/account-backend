@@ -4,6 +4,7 @@ Content-Type: application/json
 {
   "id": "jinwoo",
   "password": "1234",
+  "name": "이진우",
   "email": "jinwoo7654@naver.com"
 }
 

@@ -1,7 +1,10 @@
 package com.nhnacademy.minidooray.account.backend.service;
 
-import com.nhnacademy.minidooray.account.backend.domain.AccountRegisterRequestDTO;
-import com.nhnacademy.minidooray.account.backend.domain.LoginInfoDTO;
+import com.nhnacademy.minidooray.account.backend.domain.AccountPageInfoDto;
+import com.nhnacademy.minidooray.account.backend.domain.AccountPageInfoRequest;
+import com.nhnacademy.minidooray.account.backend.domain.AccountRegisterRequest;
+import com.nhnacademy.minidooray.account.backend.domain.LoginInfoRequest;
+import com.nhnacademy.minidooray.account.backend.domain.LoginInfoDto;
 import com.nhnacademy.minidooray.account.backend.entity.Account;
 import com.nhnacademy.minidooray.account.backend.domain.Status;
 import com.nhnacademy.minidooray.account.backend.exception.AccountAlreadyExistsException;
@@ -21,7 +24,7 @@ public class AccountServiceImpl implements AccountService{
 
     @Transactional
     @Override
-    public void createAccount(AccountRegisterRequestDTO request) {
+    public void createAccount(AccountRegisterRequest request) {
         if(accountRepository.existsById(request.getId())){
             throw new AccountAlreadyExistsException();
         }
@@ -30,6 +33,7 @@ public class AccountServiceImpl implements AccountService{
                 .id(request.getId())
                 .password(request.getPassword())
                 .email(request.getEmail())
+                .name(request.getName())
                 .status(Status.JOIN.getValue())
                 .build();
 
@@ -38,21 +42,20 @@ public class AccountServiceImpl implements AccountService{
 
     @Transactional(readOnly = true)
     @Override
-    public boolean matches(LoginInfoDTO loginInfoDTO) {
-        if(!accountRepository.existsById(loginInfoDTO.getId())){
+    public boolean matches(LoginInfoRequest dto) {
+        if(!accountRepository.existsById(dto.getId())){
             throw new AccountNotFoundException();
         }
 
-        LoginInfoDTO result = accountRepository.getLoginInfoById(loginInfoDTO.getId());
+        LoginInfoDto result = accountRepository.getLoginInfoById(dto.getId());
 
-        return Objects.equals(result.getPassword(), loginInfoDTO.getPassword());
+        return Objects.equals(result.getPassword(), dto.getPassword());
     }
 
     @Transactional(readOnly = true)
     @Override
-    public Account getAccount(String id) {
-        return accountRepository.findById(id)
-                .orElseThrow(AccountNotFoundException::new);
+    public AccountPageInfoDto getAccountPageInfo(String id) {
+        return accountRepository.getAccountPageInfoById(id);
     }
 
     @Transactional
