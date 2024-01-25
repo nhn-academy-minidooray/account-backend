@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface AccountRepository extends JpaRepository<Account, String> {
-    @Query("select new com.nhnacademy.minidooray.account.backend.domain.LoginInfo(a.id, a.password) from Account a where a.id = ?1")
+    @Query("select new com.nhnacademy.minidooray.account.backend.domain.LoginInfoDTO(a.id, a.password) from Account a where a.id = ?1")
     LoginInfoDTO getLoginInfoById(String id);
 
     @Modifying
