@@ -6,8 +6,6 @@ import com.nhnacademy.minidooray.account.backend.entity.Account;
 import com.nhnacademy.minidooray.account.backend.domain.Status;
 import com.nhnacademy.minidooray.account.backend.exception.AccountAlreadyExistsException;
 import com.nhnacademy.minidooray.account.backend.exception.AccountNotFoundException;
-import com.nhnacademy.minidooray.account.backend.exception.AlreadyInStatusException;
-import com.nhnacademy.minidooray.account.backend.exception.InvalidAccountStatusException;
 import com.nhnacademy.minidooray.account.backend.repository.AccountRepository;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
@@ -23,19 +21,19 @@ public class AccountServiceImpl implements AccountService{
 
     @Transactional
     @Override
-    public Account createAccount(AccountRegisterRequestDTO request) {
+    public void createAccount(AccountRegisterRequestDTO request) {
         if(accountRepository.existsById(request.getId())){
             throw new AccountAlreadyExistsException();
         }
 
-        Account account = new Account(
-                request.getId(),
-                request.getPassword(),
-                request.getEmail(),
-                Status.JOIN.getValue()
-        );
+        Account account = Account.builder()
+                .id(request.getId())
+                .password(request.getPassword())
+                .email(request.getEmail())
+                .status(Status.JOIN.getValue())
+                .build();
 
-        return accountRepository.save(account);
+        accountRepository.save(account);
     }
 
     @Transactional(readOnly = true)
@@ -59,28 +57,8 @@ public class AccountServiceImpl implements AccountService{
 
     @Transactional
     @Override
-    public void updateAccountStatus(String id, String status) {
-        if(!isValidStatus(status)){
-            throw new InvalidAccountStatusException();
-        }
-
-        Account account = getAccount(id);
-
-        if(Objects.equals(account.getStatus(), status)) {
-            throw new AlreadyInStatusException();
-        }
-
-        accountRepository.updateStatus(id, status);
-    }
-
-    private boolean isValidStatus(String status) {
-        for (Status validStatus : Status.values()) {
-            if (validStatus.getValue().equals(status)) {
-                return true;
-            }
-        }
-
-        return false;
+    public void setDormantAccount(String id) {
+        accountRepository.updateStatus(id, "휴면");
     }
 }
 

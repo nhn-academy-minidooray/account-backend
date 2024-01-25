@@ -56,7 +56,7 @@ public class AccountRestController {
 
     @DeleteMapping("/delete")
     public ResponseEntity<Void> deleteAccount(@RequestBody AccountIdOnlyDTO request) {
-        accountService.updateAccountStatus(request.getId(), "휴면");
+        accountService.setDormantAccount(request.getId());
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
