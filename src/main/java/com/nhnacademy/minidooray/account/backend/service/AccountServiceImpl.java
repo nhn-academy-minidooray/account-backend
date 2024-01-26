@@ -4,7 +4,6 @@ import com.nhnacademy.minidooray.account.backend.domain.dto.AccountPageInfoDTO;
 import com.nhnacademy.minidooray.account.backend.domain.dto.AccountStatusInfoDTO;
 import com.nhnacademy.minidooray.account.backend.domain.requestbody.AccountRegisterRequest;
 import com.nhnacademy.minidooray.account.backend.domain.requestbody.LoginInfoRequest;
-import com.nhnacademy.minidooray.account.backend.domain.dto.LoginInfoDTO;
 import com.nhnacademy.minidooray.account.backend.entity.Account;
 import com.nhnacademy.minidooray.account.backend.domain.Status;
 import com.nhnacademy.minidooray.account.backend.repository.AccountRepository;
@@ -48,34 +47,14 @@ public class AccountServiceImpl implements AccountService{
     @Transactional(readOnly = true)
     @Override
     public Optional<AccountStatusInfoDTO> matches(LoginInfoRequest request) {
-        if(!accountRepository.existsById(request.getId())){
-            log.error("matches() : Not exist id {}", request.getId());
-
-            return Optional.empty();
-        }
-
-        LoginInfoDTO result = accountRepository.getLoginInfoById(request.getId());
-
-        if(Objects.equals(result.getPassword(), request.getPassword())){
-            return Optional.of(
-                    accountRepository.getAccountStatusInfoById(request.getId()));
-        }
-
-        return Optional.empty();
+        return accountRepository
+                .getAccountStatusInfoByIdAndPassword(request.getId(), request.getPassword());
     }
 
     @Transactional(readOnly = true)
     @Override
     public Optional<AccountPageInfoDTO> getAccountPageInfo(String id) {
-        AccountPageInfoDTO result = accountRepository.getAccountPageInfoById(id);
-
-        if(Objects.isNull(result)){
-            log.error("getAccountPageInfo() : Not exist id {}", id);
-
-            return Optional.empty();
-        }
-
-        return Optional.of(result);
+        return accountRepository.getAccountPageInfoById(id);
     }
 
     @Transactional
@@ -89,11 +68,14 @@ public class AccountServiceImpl implements AccountService{
             return false;
         }
 
-        if(matches(request).isEmpty()){
+        if(accountRepository
+                .getAccountStatusInfoByIdAndPassword(request.getId(), request.getPassword())
+                .isEmpty()){
             log.error("setDormantAccount() : Not match id and password");
 
             return false;
         }
+
         if(Objects.equals(account.get().getStatus(), Status.DORMANT.getValue())) {
             log.error("setDormantAccount() : Already set status '휴면'");
 
