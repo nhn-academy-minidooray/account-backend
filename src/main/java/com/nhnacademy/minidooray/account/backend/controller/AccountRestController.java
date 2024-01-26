@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,10 +48,10 @@ public class AccountRestController {
     }
 
 
-    @GetMapping("/info")
-    public ResponseEntity<AccountPageInfoDTO> getInfo(@RequestBody AccountIdOnlyRequest request) {
+    @GetMapping("/info/{accountId}")
+    public ResponseEntity<AccountPageInfoDTO> getInfo(@PathVariable String accountId) {
             Optional<AccountPageInfoDTO> info
-                    = accountService.getAccountPageInfo(request.getId());
+                    = accountService.getAccountPageInfo(accountId);
 
             return info.isPresent()
                     ? ResponseEntity.ok(info.get())
