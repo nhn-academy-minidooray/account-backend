@@ -1,0 +1,34 @@
+POST http://localhost:8080/account/register
+Content-Type: application/json
+
+{
+  "id": "jinwoo",
+  "password": "1234",
+  "name": "이진우",
+  "email": "jinwoo7654@naver.com"
+}
+
+###
+POST http://localhost:8080/account/login
+Content-Type: application/json
+
+{
+  "id": "jinwoo",
+  "password": "1234"
+}
+
+###
+GET http://localhost:8080/account/info
+Content-Type: application/json
+
+{
+  "id": "jinwoo"
+}
+
+###
+DELETE http://localhost:8080/account/delete
+Content-Type: application/json
+
+{
+  "id": "jinwoo"
+}
