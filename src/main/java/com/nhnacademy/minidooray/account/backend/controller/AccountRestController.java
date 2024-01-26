@@ -1,12 +1,12 @@
 package com.nhnacademy.minidooray.account.backend.controller;
 
-import com.nhnacademy.minidooray.account.backend.domain.AccountIdOnlyRequest;
-import com.nhnacademy.minidooray.account.backend.domain.AccountPageInfoDto;
-import com.nhnacademy.minidooray.account.backend.domain.AccountPageInfoRequest;
-import com.nhnacademy.minidooray.account.backend.domain.AccountRegisterRequest;
-import com.nhnacademy.minidooray.account.backend.domain.LoginInfoRequest;
-import com.nhnacademy.minidooray.account.backend.exception.AccountNotFoundException;
+import com.nhnacademy.minidooray.account.backend.domain.dto.AccountStatusInfoDTO;
+import com.nhnacademy.minidooray.account.backend.domain.requestbody.AccountIdOnlyRequest;
+import com.nhnacademy.minidooray.account.backend.domain.dto.AccountPageInfoDTO;
+import com.nhnacademy.minidooray.account.backend.domain.requestbody.AccountRegisterRequest;
+import com.nhnacademy.minidooray.account.backend.domain.requestbody.LoginInfoRequest;
 import com.nhnacademy.minidooray.account.backend.service.AccountService;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,36 +29,40 @@ public class AccountRestController {
 
     @PostMapping("/register")
     public ResponseEntity<Void> createAccount(@RequestBody AccountRegisterRequest request) {
-        accountService.createAccount(request);
+        boolean isProcessed = accountService.createAccount(request);
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return isProcessed
+                ? ResponseEntity.status(HttpStatus.CREATED).build()
+                : ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Void> doLogin(@RequestBody LoginInfoRequest request) {
-        return accountService.matches(request)
-                ? ResponseEntity.status(HttpStatus.OK).build()
+    public ResponseEntity<AccountStatusInfoDTO> doLogin(@RequestBody LoginInfoRequest request) {
+        Optional<AccountStatusInfoDTO> info
+                = accountService.matches(request);
+
+        return info.isPresent()
+                ? ResponseEntity.ok(info.get())
                 : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
 
     @GetMapping("/info")
-    public ResponseEntity<AccountPageInfoDto> getInfo(@RequestBody AccountIdOnlyRequest request) {
-        try {
-            AccountPageInfoDto info = accountService.getAccountPageInfo(request.getId());
+    public ResponseEntity<AccountPageInfoDTO> getInfo(@RequestBody AccountIdOnlyRequest request) {
+            Optional<AccountPageInfoDTO> info
+                    = accountService.getAccountPageInfo(request.getId());
 
-            return ResponseEntity.ok(info);
-        } catch(AccountNotFoundException exception) {
-            log.error("Not Exist Account.", exception);
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+            return info.isPresent()
+                    ? ResponseEntity.ok(info.get())
+                    : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteAccount(@RequestBody AccountIdOnlyRequest request) {
-        accountService.setDormantAccount(request.getId());
+    public ResponseEntity<Void> deleteAccount(@RequestBody LoginInfoRequest request) {
+        boolean isProcessed = accountService.setDormantAccount(request);
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return isProcessed
+                ? ResponseEntity.status(HttpStatus.OK).build()
+                : ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
 }

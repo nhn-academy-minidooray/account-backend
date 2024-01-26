@@ -1,19 +1,19 @@
 package com.nhnacademy.minidooray.account.backend.service;
 
-import com.nhnacademy.minidooray.account.backend.domain.AccountPageInfoDto;
-import com.nhnacademy.minidooray.account.backend.domain.AccountPageInfoRequest;
-import com.nhnacademy.minidooray.account.backend.domain.AccountRegisterRequest;
-import com.nhnacademy.minidooray.account.backend.domain.LoginInfoRequest;
-import com.nhnacademy.minidooray.account.backend.domain.LoginInfoDto;
+import com.nhnacademy.minidooray.account.backend.domain.dto.AccountPageInfoDTO;
+import com.nhnacademy.minidooray.account.backend.domain.dto.AccountStatusInfoDTO;
+import com.nhnacademy.minidooray.account.backend.domain.requestbody.AccountRegisterRequest;
+import com.nhnacademy.minidooray.account.backend.domain.requestbody.LoginInfoRequest;
 import com.nhnacademy.minidooray.account.backend.entity.Account;
 import com.nhnacademy.minidooray.account.backend.domain.Status;
-import com.nhnacademy.minidooray.account.backend.exception.AccountAlreadyExistsException;
-import com.nhnacademy.minidooray.account.backend.exception.AccountNotFoundException;
 import com.nhnacademy.minidooray.account.backend.repository.AccountRepository;
 import java.util.Objects;
+import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 public class AccountServiceImpl implements AccountService{
     private final AccountRepository accountRepository;
@@ -24,9 +24,11 @@ public class AccountServiceImpl implements AccountService{
 
     @Transactional
     @Override
-    public void createAccount(AccountRegisterRequest request) {
+    public boolean createAccount(AccountRegisterRequest request) {
         if(accountRepository.existsById(request.getId())){
-            throw new AccountAlreadyExistsException();
+            log.error("createAccount() : Already exists id {}", request.getId());
+
+            return false;
         }
 
         Account account = Account.builder()
@@ -38,30 +40,51 @@ public class AccountServiceImpl implements AccountService{
                 .build();
 
         accountRepository.save(account);
+
+        return true;
     }
 
     @Transactional(readOnly = true)
     @Override
-    public boolean matches(LoginInfoRequest dto) {
-        if(!accountRepository.existsById(dto.getId())){
-            throw new AccountNotFoundException();
-        }
-
-        LoginInfoDto result = accountRepository.getLoginInfoById(dto.getId());
-
-        return Objects.equals(result.getPassword(), dto.getPassword());
+    public Optional<AccountStatusInfoDTO> matches(LoginInfoRequest request) {
+        return accountRepository
+                .getAccountStatusInfoByIdAndPassword(request.getId(), request.getPassword());
     }
 
     @Transactional(readOnly = true)
     @Override
-    public AccountPageInfoDto getAccountPageInfo(String id) {
+    public Optional<AccountPageInfoDTO> getAccountPageInfo(String id) {
         return accountRepository.getAccountPageInfoById(id);
     }
 
     @Transactional
     @Override
-    public void setDormantAccount(String id) {
-        accountRepository.updateStatus(id, "휴면");
+    public boolean setDormantAccount(LoginInfoRequest request) {
+        Optional<Account> account = accountRepository.findById(request.getId());
+
+        if(account.isEmpty()){
+            log.error("setDormantAccount() : Not Found Account By {}", request.getId());
+
+            return false;
+        }
+
+        if(accountRepository
+                .getAccountStatusInfoByIdAndPassword(request.getId(), request.getPassword())
+                .isEmpty()){
+            log.error("setDormantAccount() : Not match id and password");
+
+            return false;
+        }
+
+        if(Objects.equals(account.get().getStatus(), Status.DORMANT.getValue())) {
+            log.error("setDormantAccount() : Already set status '휴면'");
+
+            return false;
+        }
+
+        accountRepository.updateStatus(request.getId(), Status.DORMANT.getValue());
+
+        return true;
     }
 }
 
