@@ -1,18 +1,18 @@
 package com.nhnacademy.minidooray.account.backend.service;
 
-import com.nhnacademy.minidooray.account.backend.domain.AccountPageInfoDto;
-import com.nhnacademy.minidooray.account.backend.domain.AccountRegisterRequest;
-import com.nhnacademy.minidooray.account.backend.domain.LoginInfoRequest;
-import com.nhnacademy.minidooray.account.backend.entity.Account;
+import com.nhnacademy.minidooray.account.backend.domain.dto.AccountPageInfoDTO;
+import com.nhnacademy.minidooray.account.backend.domain.dto.AccountStatusInfoDTO;
+import com.nhnacademy.minidooray.account.backend.domain.requestbody.AccountRegisterRequest;
+import com.nhnacademy.minidooray.account.backend.domain.requestbody.LoginInfoRequest;
 import java.util.Optional;
 
 public interface AccountService {
 
-    Optional<Account> createAccount(AccountRegisterRequest request);
+    boolean createAccount(AccountRegisterRequest request);
 
-    boolean matches(LoginInfoRequest loginInfoRequest);
+    Optional<AccountStatusInfoDTO> matches(LoginInfoRequest loginInfoRequest);
 
-    Optional<AccountPageInfoDto> getAccountPageInfo(String id);
+    Optional<AccountPageInfoDTO> getAccountPageInfo(String id);
 
-    int setDormantAccount(String id);
+    boolean setDormantAccount(LoginInfoRequest request);
 }

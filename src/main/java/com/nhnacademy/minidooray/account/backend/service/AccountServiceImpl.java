@@ -1,9 +1,10 @@
 package com.nhnacademy.minidooray.account.backend.service;
 
-import com.nhnacademy.minidooray.account.backend.domain.AccountPageInfoDto;
-import com.nhnacademy.minidooray.account.backend.domain.AccountRegisterRequest;
-import com.nhnacademy.minidooray.account.backend.domain.LoginInfoRequest;
-import com.nhnacademy.minidooray.account.backend.domain.LoginInfoDto;
+import com.nhnacademy.minidooray.account.backend.domain.dto.AccountPageInfoDTO;
+import com.nhnacademy.minidooray.account.backend.domain.dto.AccountStatusInfoDTO;
+import com.nhnacademy.minidooray.account.backend.domain.requestbody.AccountRegisterRequest;
+import com.nhnacademy.minidooray.account.backend.domain.requestbody.LoginInfoRequest;
+import com.nhnacademy.minidooray.account.backend.domain.dto.LoginInfoDTO;
 import com.nhnacademy.minidooray.account.backend.entity.Account;
 import com.nhnacademy.minidooray.account.backend.domain.Status;
 import com.nhnacademy.minidooray.account.backend.repository.AccountRepository;
@@ -24,11 +25,11 @@ public class AccountServiceImpl implements AccountService{
 
     @Transactional
     @Override
-    public Optional<Account> createAccount(AccountRegisterRequest request) {
+    public boolean createAccount(AccountRegisterRequest request) {
         if(accountRepository.existsById(request.getId())){
             log.error("createAccount() : Already exists id {}", request.getId());
 
-            return Optional.empty();
+            return false;
         }
 
         Account account = Account.builder()
@@ -41,27 +42,32 @@ public class AccountServiceImpl implements AccountService{
 
         accountRepository.save(account);
 
-        return Optional.of(account);
+        return true;
     }
 
     @Transactional(readOnly = true)
     @Override
-    public boolean matches(LoginInfoRequest dto) {
-        if(!accountRepository.existsById(dto.getId())){
-            log.error("matches() : Not exist id {}", dto.getId());
+    public Optional<AccountStatusInfoDTO> matches(LoginInfoRequest request) {
+        if(!accountRepository.existsById(request.getId())){
+            log.error("matches() : Not exist id {}", request.getId());
 
-            return false;
+            return Optional.empty();
         }
 
-        LoginInfoDto result = accountRepository.getLoginInfoById(dto.getId());
+        LoginInfoDTO result = accountRepository.getLoginInfoById(request.getId());
 
-        return Objects.equals(result.getPassword(), dto.getPassword());
+        if(Objects.equals(result.getPassword(), request.getPassword())){
+            return Optional.of(
+                    accountRepository.getAccountStatusInfoById(request.getId()));
+        }
+
+        return Optional.empty();
     }
 
     @Transactional(readOnly = true)
     @Override
-    public Optional<AccountPageInfoDto> getAccountPageInfo(String id) {
-        AccountPageInfoDto result = accountRepository.getAccountPageInfoById(id);
+    public Optional<AccountPageInfoDTO> getAccountPageInfo(String id) {
+        AccountPageInfoDTO result = accountRepository.getAccountPageInfoById(id);
 
         if(Objects.isNull(result)){
             log.error("getAccountPageInfo() : Not exist id {}", id);
@@ -74,18 +80,29 @@ public class AccountServiceImpl implements AccountService{
 
     @Transactional
     @Override
-    public int setDormantAccount(String id) {
-        Optional<Account> account = accountRepository.findById(id);
+    public boolean setDormantAccount(LoginInfoRequest request) {
+        Optional<Account> account = accountRepository.findById(request.getId());
 
-        if(account.isPresent() && !Objects.equals(account.get().getStatus(), "휴면")){
-            accountRepository.updateStatus(id, "휴면");
+        if(account.isEmpty()){
+            log.error("setDormantAccount() : Not Found Account By {}", request.getId());
 
-            return 1;
+            return false;
         }
 
-        log.error("setDormantAccount() : Not Found Account By {} or already set status '휴면'", id);
+        if(matches(request).isEmpty()){
+            log.error("setDormantAccount() : Not match id and password");
 
-        return 0;
+            return false;
+        }
+        if(Objects.equals(account.get().getStatus(), Status.DORMANT.getValue())) {
+            log.error("setDormantAccount() : Already set status '휴면'");
+
+            return false;
+        }
+
+        accountRepository.updateStatus(request.getId(), Status.DORMANT.getValue());
+
+        return true;
     }
 }
 

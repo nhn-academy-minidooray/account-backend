@@ -1,4 +1,4 @@
-package com.nhnacademy.minidooray.account.backend.domain;
+package com.nhnacademy.minidooray.account.backend.domain.requestbody;
 
 import lombok.Data;
 
