@@ -1,19 +1,19 @@
 package com.nhnacademy.minidooray.account.backend.service;
 
 import com.nhnacademy.minidooray.account.backend.domain.AccountPageInfoDto;
-import com.nhnacademy.minidooray.account.backend.domain.AccountPageInfoRequest;
 import com.nhnacademy.minidooray.account.backend.domain.AccountRegisterRequest;
 import com.nhnacademy.minidooray.account.backend.domain.LoginInfoRequest;
 import com.nhnacademy.minidooray.account.backend.domain.LoginInfoDto;
 import com.nhnacademy.minidooray.account.backend.entity.Account;
 import com.nhnacademy.minidooray.account.backend.domain.Status;
-import com.nhnacademy.minidooray.account.backend.exception.AccountAlreadyExistsException;
-import com.nhnacademy.minidooray.account.backend.exception.AccountNotFoundException;
 import com.nhnacademy.minidooray.account.backend.repository.AccountRepository;
 import java.util.Objects;
+import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 public class AccountServiceImpl implements AccountService{
     private final AccountRepository accountRepository;
@@ -24,9 +24,11 @@ public class AccountServiceImpl implements AccountService{
 
     @Transactional
     @Override
-    public void createAccount(AccountRegisterRequest request) {
+    public Optional<Account> createAccount(AccountRegisterRequest request) {
         if(accountRepository.existsById(request.getId())){
-            throw new AccountAlreadyExistsException();
+            log.error("createAccount() : Already exists id {}", request.getId());
+
+            return Optional.empty();
         }
 
         Account account = Account.builder()
@@ -38,13 +40,17 @@ public class AccountServiceImpl implements AccountService{
                 .build();
 
         accountRepository.save(account);
+
+        return Optional.of(account);
     }
 
     @Transactional(readOnly = true)
     @Override
     public boolean matches(LoginInfoRequest dto) {
         if(!accountRepository.existsById(dto.getId())){
-            throw new AccountNotFoundException();
+            log.error("matches() : Not exist id {}", dto.getId());
+
+            return false;
         }
 
         LoginInfoDto result = accountRepository.getLoginInfoById(dto.getId());
@@ -54,14 +60,32 @@ public class AccountServiceImpl implements AccountService{
 
     @Transactional(readOnly = true)
     @Override
-    public AccountPageInfoDto getAccountPageInfo(String id) {
-        return accountRepository.getAccountPageInfoById(id);
+    public Optional<AccountPageInfoDto> getAccountPageInfo(String id) {
+        AccountPageInfoDto result = accountRepository.getAccountPageInfoById(id);
+
+        if(Objects.isNull(result)){
+            log.error("getAccountPageInfo() : Not exist id {}", id);
+
+            return Optional.empty();
+        }
+
+        return Optional.of(result);
     }
 
     @Transactional
     @Override
-    public void setDormantAccount(String id) {
-        accountRepository.updateStatus(id, "휴면");
+    public int setDormantAccount(String id) {
+        Optional<Account> account = accountRepository.findById(id);
+
+        if(account.isPresent() && !Objects.equals(account.get().getStatus(), "휴면")){
+            accountRepository.updateStatus(id, "휴면");
+
+            return 1;
+        }
+
+        log.error("setDormantAccount() : Not Found Account By {} or already set status '휴면'", id);
+
+        return 0;
     }
 }
 
