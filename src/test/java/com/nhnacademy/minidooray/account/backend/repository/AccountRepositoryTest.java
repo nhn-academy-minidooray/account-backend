@@ -17,10 +17,10 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 class AccountRepositoryTest {
 
     @Autowired
-    TestEntityManager entityManager;
+    private TestEntityManager entityManager;
 
     @Autowired
-    AccountRepository accountRepository;
+    private AccountRepository accountRepository;
 
     @Test
     void testGetAccountPageInfoById() {
