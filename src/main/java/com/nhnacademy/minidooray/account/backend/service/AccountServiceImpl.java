@@ -76,14 +76,15 @@ public class AccountServiceImpl implements AccountService{
             return false;
         }
 
-        if(Objects.equals(account.get().getStatus(), Status.DORMANT.getValue())
-                || Objects.equals(account.get().getStatus(), Status.WITHDRAWAL.getValue())) {
+        Account modifiedAccount = account.get();
+
+        if(Objects.equals(modifiedAccount.getStatus(), Status.DORMANT.getValue())
+                || Objects.equals(modifiedAccount.getStatus(), Status.WITHDRAWAL.getValue())) {
             log.error("setDormantAccount() : Cannot set status");
 
             return false;
         }
 
-        Account modifiedAccount = account.get();
         modifiedAccount.setStatus(Status.DORMANT.getValue());
         accountRepository.save(modifiedAccount);
 
