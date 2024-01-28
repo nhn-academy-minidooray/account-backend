@@ -1,7 +1,6 @@
 package com.nhnacademy.minidooray.account.backend.controller;
 
 import com.nhnacademy.minidooray.account.backend.domain.dto.AccountStatusInfoDTO;
-import com.nhnacademy.minidooray.account.backend.domain.requestbody.AccountIdOnlyRequest;
 import com.nhnacademy.minidooray.account.backend.domain.dto.AccountPageInfoDTO;
 import com.nhnacademy.minidooray.account.backend.domain.requestbody.AccountRegisterRequest;
 import com.nhnacademy.minidooray.account.backend.domain.requestbody.LoginInfoRequest;
